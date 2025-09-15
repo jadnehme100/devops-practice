@@ -17,6 +17,14 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
+      - name: Debug paths
+        run: |
+          pwd
+          ls -la
+          ls -la app
+          test -f app/package-lock.json && echo "FOUND: app/package-lock.json" || (echo "MISSING: app/package-lock.json" && exit 1)
+
+
       - name: Use Node 18
         uses: actions/setup-node@v4
         with:
