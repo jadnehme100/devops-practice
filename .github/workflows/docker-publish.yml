@@ -5,6 +5,9 @@ on:
     branches: [ "main" ]
   workflow_dispatch:
 
+# If your Docker Hub repo is under your personal username, this is correct.
+# If it's under an ORG (e.g., myorg/devops-practice), change IMAGE_NAME accordingly:
+# IMAGE_NAME: myorg/devops-practice
 env:
   IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/devops-practice
 
@@ -16,18 +19,22 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
-      - name: Use Node 18
+      - name: Use Node 20
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
           cache: npm
-          cache-dependency-path: package-lock.json   # <-- at repo root now
+          cache-dependency-path: package-lock.json
 
       - name: Install deps
-        run: npm ci                                   # <-- no working-directory
+        run: npm ci
 
       - name: Typecheck / Build (fast sanity)
-        run: npm run build                            # <-- runs vite build at root
+        run: npm run build
+        # If you have tests, add:
+        # run: |
+        #   npm test -- --ci
+        #   npm run build
 
   docker:
     name: Build & Push Docker image
@@ -37,10 +44,10 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
-      - name: Set up QEMU
+      - name: Set up QEMU (for cross-arch builds)
         uses: docker/setup-qemu-action@v3
 
-      - name: Set up Docker Buildx
+      - name: Set up Docker Buildx (BuildKit)
         uses: docker/setup-buildx-action@v3
 
       - name: Login to Docker Hub
@@ -56,8 +63,8 @@ jobs:
       - name: Build & push
         uses: docker/build-push-action@v6
         with:
-          context: .                 # <-- build from repo root
-          file: ./Dockerfile         # <-- Dockerfile at root
+          context: .
+          file: ./Dockerfile
           push: true
           platforms: linux/amd64
           tags: |

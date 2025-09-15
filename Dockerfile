@@ -1,33 +1,29 @@
 # ---------- 1) BUILD STAGE ----------
-    FROM node:18-alpine AS builder
+    FROM node:20-alpine AS builder
     WORKDIR /app
     
-    # Copy only package files first to leverage Docker layer caching
+    # Copy only manifests first to enable layer caching
     COPY package*.json ./
     RUN npm ci
     
-    # Now copy the rest of the source
+    # Copy the rest of the source and build the static assets
     COPY . .
-    
-    # Build static assets
     RUN npm run build
     
     
     # ---------- 2) RUNTIME STAGE ----------
     FROM nginx:1.27-alpine AS runtime
     
-    # Copy our built static files from the builder stage into Nginx's web root
+    # Serve the built static files with Nginx
     COPY --from=builder /app/dist /usr/share/nginx/html
-    
-    # Provide a minimal Nginx config tuned for SPA/static hosting
     COPY nginx.conf /etc/nginx/conf.d/default.conf
     
-    # Add a healthcheck so orchestrators (or you) know if the container is healthy
+    # Healthcheck so orchestrators know if this is responsive
     HEALTHCHECK CMD wget -qO- http://localhost:80/ || exit 1
     
-    # Nginx exposes port 80; Docker uses this to map host ports
+    # Nginx listens on 80 inside the container
     EXPOSE 80
     
-    # Default command for nginx images (kept explicit for clarity)
+    # Keep Nginx in the foreground
     CMD ["nginx", "-g", "daemon off;"]
     
