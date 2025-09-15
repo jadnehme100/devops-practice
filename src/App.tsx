@@ -5,7 +5,7 @@ function App() {
 
   return (
     <main style={{ fontFamily: 'system-ui, sans-serif', padding: 24 }}>
-      <h1>DevOps Practice App</h1>
+      <h1>DevOps Practice App V2</h1>
       <p>Built with Vite + React, packaged with Docker, served by Nginx.</p>
       <button onClick={() => setCount((c) => c + 1)}>
         Clicks: {count}
